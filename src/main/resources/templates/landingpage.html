@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моніторинг заповідних територій</title>
+    <link rel="stylesheet" href="static/css/header.css">
+    <link rel="stylesheet" href="static/css/landingpage.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+</head>
+<body>
+    <header class="custom-header">
+        <!-- Ліва частина: Пошук -->
+        <div class="header-left">
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Design">
+            </div>
+        </div>
+
+        <!-- Центр: Меню -->
+        <nav class="header-center">
+            <ul class="nav-menu">
+                <li><a href="#">Search</a></li>
+                <li><a href="#">Overview</a></li>
+                <li><a href="#">Design</a></li>
+                <li><a href="#">Color</a></li>
+            </ul>
+        </nav>
+
+        <!-- Права частина: Іконки -->
+        <div class="header-right">
+            <span class="icon">📍</span>
+            <span class="icon">⚙️</span>
+            <span class="icon">🔘</span>
+        </div>
+    </header>
+
+    <!-- Контейнер для карти -->
+    <div id="map-container">
+        <div id="map"></div> 
+    </div>
+
+<!-- Перше модальне вікно -->
+<div class="overlay" id="overlay"></div>
+<div class="modal" id="modal-1">
+    <h2 id="modal-1-title"></h2>
+    <p id="modal-1-description"></p>
+    <button id="open-modal-2">Детальніше</button>
+    <button id="close-modal-1">Закрити</button>
+</div>
+
+<!-- Друге модальне вікно -->
+<div class="modal" id="modal-2">
+    <h2>Додаткова інформація</h2>
+    <p>Тут може бути ще більше інформації про цей заповідник.</p>
+    <button id="close-modal-2">Закрити</button>
+</div>
+
+
+
+    <script src="static/js/script.js"></script>
+    <!-- <script src="map.js"></script> -->
+</body>
+</html>

@@ -1,0 +1,17 @@
+spring:
+  freemarker:
+    expose-request-attributes: 'true'
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    password: sa
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    username: admin
+    url: jdbc:sqlserver://localhost:1433;databaseName=metho
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: 'true'
+    database-platform: org.hibernate.dialect.SQLServer2012Dialect
