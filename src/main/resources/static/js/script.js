@@ -1,32 +1,40 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const map = L.map('map', {
-      center: [48.3794, 31.1656],
-      zoom: 6,
-      minZoom: 5,
-      maxZoom: 10,
-      maxBounds: [
-          [44.3, 22.1],
-          [52.4, 40.1]
-      ],
-      maxBoundsViscosity: 1.0,
-      scrollWheelZoom: true,
-      noWrap: true
-  });
+    const map = L.map('map', {
+        center: [46.4511, 33.8739],
+        zoom: 6,
+        maxZoom: 100
+    });
 
-  L.tileLayer('https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://stamen.com/">Stamen Design</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      subdomains: ['a', 'b', 'c', 'd']
-  }).addTo(map);
+    L.tileLayer('https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://stamen.com/">Stamen Design</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: ['a', 'b', 'c', 'd']
+    }).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: ''
+    }).addTo(map);
 
-  L.tileLayer('https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {
-      attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.',
-      maxZoom: 19,
-      noWrap: true
-  }).addTo(map);
+    // Додати прослуховування події на натискання на карту
+    map.on('click', function (e) {
+        const coords = e.latlng; // Отримуємо координати місця натискання
+
+        // Копіюємо координати в буфер обміну
+        copyToClipboard(`${coords.lat}, ${coords.lng}`);
+
+        // Показуємо повідомлення
+        alert('Координати скопійовано: ' + `${coords.lat}, ${coords.lng}`);
+    });
+
+    // Функція для копіювання в буфер обміну
+    function copyToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+
 
     fetch('/api/reserves')
         .then(response => response.json())
@@ -54,16 +62,13 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => console.error('Error fetching reserves:', error));
 
     const customIcon = L.icon({
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34]
+        iconUrl: './src/main/resources/static/location.png',
+        iconSize:     [40, 43], // size of the icon
+        shadowSize:   [50, 64], // size of the shadow
+        iconAnchor:   [20, 43], // point of the icon which will correspond to marker's location
+        shadowAnchor: [4, 62],  // the same for the shadow
+        popupAnchor:  [0, -43]
     });
-  map.on('drag', function () {
-      if (!map.getBounds().contains(map.getCenter())) {
-          map.setView([48.3794, 31.1656], 6);
-      }
-  });
 
   map.on('zoom', function () {
       if (map.getZoom() > 10) {
