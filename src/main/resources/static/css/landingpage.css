@@ -52,6 +52,7 @@
   z-index: 1000;
   width: 300px;
   text-align: center;
+  overflow-y: scroll;
 }
 
 .modal.active {

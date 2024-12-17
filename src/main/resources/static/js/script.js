@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    fetch('/api/reserves')
+    fetch('/api/weather/reserves')
         .then(response => response.json())
         .then(reserves => {
             const customIcon = L.icon({
@@ -45,15 +45,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 iconAnchor: [12, 41],
                 popupAnchor: [1, -34]
             });
+            // Вихідний масив reserves
+            const groupedData = reserves.reduce((acc, reserve) => {
+                const areaId = reserve.protectedArea.id;
 
-            reserves.forEach(reserve => {
-                const coords = reserve.location.split(',').map(coord => parseFloat(coord.trim()));
+                if (!acc[areaId]) {
+                    // Якщо такої території ще немає, додаємо її
+                    acc[areaId] = {
+                        protectedArea: reserve.protectedArea,
+                        weatherData: []
+                    };
+                }
+
+                // Додаємо інформацію про погоду до масиву weatherData
+                acc[areaId].weatherData.push({
+                    date: reserve.date,
+                    temperature: reserve.temperature,
+                    precipitation: reserve.precipitation,
+                    windSpeed: reserve.windSpeed,
+                    notes: reserve.notes
+                });
+
+                return acc;
+            }, {});
+
+
+            Object.values(groupedData).forEach(reserve => {
+                const coords = reserve.protectedArea.location.split(',').map(coord => parseFloat(coord.trim()));
                 L.marker(coords, { icon: customIcon })
                     .addTo(map)
                     .bindPopup(`
-                    <b>${reserve.name}</b><br>
-                    ${reserve.description}<br>
-                    <button onclick="showModal1('${reserve.name}', '${reserve.description}')">
+                    <b>${reserve.protectedArea.name}</b><br>
+                    ${reserve.protectedArea.description}<br>
+                    <button onclick='showModal1(${JSON.stringify(reserve)})'>
                         Детальніше
                     </button>
                 `);
@@ -61,16 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(error => console.error('Error fetching reserves:', error));
 
-    const customIcon = L.icon({
-        iconUrl: './src/main/resources/static/location.png',
-        iconSize:     [40, 43], // size of the icon
-        shadowSize:   [50, 64], // size of the shadow
-        iconAnchor:   [20, 43], // point of the icon which will correspond to marker's location
-        shadowAnchor: [4, 62],  // the same for the shadow
-        popupAnchor:  [0, -43]
-    });
-
-  map.on('zoom', function () {
+    map.on('zoom', function () {
       if (map.getZoom() > 10) {
           map.setZoom(10);
       }
@@ -79,10 +94,32 @@ document.addEventListener('DOMContentLoaded', function () {
       }
   });
 
-  // Функція для відкриття першого модального вікна
-  window.showModal1 = function(name, description) {
-      document.getElementById('modal-1-title').textContent = name;
-      document.getElementById('modal-1-description').textContent = description;
+    // Функція для відкриття першого модального вікна
+  window.showModal1 = async function(reserve) {
+      console.log('reserve', JSON.stringify(reserve))
+      const response = await fetch("/api/evaluate", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify({weatherData: reserve.weatherData})
+      });
+      if (response.ok) {
+          const data = await response.json();
+          console.log("Fuzzy Evaluation Results:", data);
+          // Відобразіть дані на сторінці
+          data.forEach(item => {
+              console.log(`Дата: ${item.date}, Стан: ${item.status}`);
+          });
+          document.getElementById("modal-1-fuzzy-logic").innerHTML = data.map(item => `<p>Дата: ${item.date}, Статус: ${item.status}</p>`).join('');
+      } else {
+          console.error("Error:", response.status);
+      }
+
+      console.log(reserve)
+      document.getElementById('modal-1-title').textContent = reserve.protectedArea.name;
+      document.getElementById('modal-1-description').textContent = reserve.protectedArea.description;
+      document.getElementById('open-modal-2').onclick = function (){showModal2(reserve.weatherData);}
       document.getElementById('overlay').style.display = 'block';
       document.getElementById('modal-1').style.display = 'block';
   };
@@ -94,12 +131,113 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Відкриття другого модального вікна
-  document.getElementById('open-modal-2').addEventListener('click', function() {
-      document.getElementById('modal-1').style.display = 'none';
-      document.getElementById('modal-2').style.display = 'block';
-  });
 
-  // Закриття другого модального вікна
+    window.showModal2 = function(filteredData) {
+        document.getElementById('modal-1').style.display = 'none';
+        document.getElementById('modal-2').style.display = 'block';
+
+        // Логування вхідних даних
+        console.log('Filtered Data:', filteredData);
+
+        // Форматування даних
+        const labels = filteredData.map(item => item.date); // Масив дат
+        const temperatures = filteredData.map(item => parseFloat(item.temperature) || 0); // Температури
+        const precipitations = filteredData.map(item => parseFloat(item.precipitation) || 0); // Опади
+        const windSpeeds = filteredData.map(item => parseFloat(item.windSpeed) || 0); // Швидкість вітру
+
+        // Очистка старих графіків, якщо вони є
+        if (window.temperatureChart) window.temperatureChart.destroy();
+        if (window.precipitationChart) window.precipitationChart.destroy();
+        if (window.windSpeedChart) window.windSpeedChart.destroy();
+
+        // 1. Графік для температури
+        const ctxTemp = document.getElementById('temperature-chart').getContext('2d');
+        window.temperatureChart = new Chart(ctxTemp, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: temperatures,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { title: { display: true, text: 'Temperature (°C)' } }
+                }
+            }
+        });
+
+        // 2. Графік для опадів
+        const ctxPrecip = document.getElementById('precipitation-chart').getContext('2d');
+        window.precipitationChart = new Chart(ctxPrecip, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Precipitation (mm)',
+                    data: precipitations,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { title: { display: true, text: 'Precipitation (mm)' } }
+                }
+            }
+        });
+
+        // 3. Графік для швидкості вітру
+        const ctxWind = document.getElementById('wind-speed-chart').getContext('2d');
+        window.windSpeedChart = new Chart(ctxWind, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Wind Speed (km/h)',
+                    data: windSpeeds,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { title: { display: true, text: 'Wind Speed (km/h)' } }
+                }
+            }
+        });
+    };
+
+
+
+    // Закриття другого модального вікна
   document.getElementById('close-modal-2').addEventListener('click', function() {
       document.getElementById('modal-2').style.display = 'none';
       document.getElementById('overlay').style.display = 'none';

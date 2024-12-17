@@ -10,9 +10,9 @@ import java.util.List;
 public class ProtectedAreaService {
 
     @Autowired
-    private ProtectedAreaRepository ProtectedAreaRepository;
+    private ProtectedAreaRepository protectedAreaRepository;
 
     public List<ProtectedArea> getAllReserves() {
-        return ProtectedAreaRepository.findAll();
+        return protectedAreaRepository.findAll();
     }
 }

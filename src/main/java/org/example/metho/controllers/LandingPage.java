@@ -18,10 +18,9 @@ public class LandingPage {
     @Autowired
     private ProtectedAreaRepository protectedAreaRepository;
 
-    // Цей метод повертає HTML сторінку (landingpage)
     @GetMapping("/")
     public String main(Model model) {
-        return "landingpage";  // Це ім'я вашого HTML шаблону
+        return "landingpage";
     }
 
 }
