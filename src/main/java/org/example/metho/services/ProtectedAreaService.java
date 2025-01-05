@@ -15,4 +15,7 @@ public class ProtectedAreaService {
     public List<ProtectedArea> getAllReserves() {
         return protectedAreaRepository.findAll();
     }
+    public ProtectedArea getReserveById(int reserveId) {
+        return protectedAreaRepository.findById(reserveId).orElse(null);
+    }
 }

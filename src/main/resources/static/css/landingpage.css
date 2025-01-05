@@ -87,3 +87,29 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+#modal-1 {
+  width: 70%; /* Ширина модального вікна - 70% від ширини екрану */
+  max-width: 800px; /* Максимальна ширина */
+  height: auto; /* Автоматична висота залежно від вмісту */
+  padding: 30px; /* Додатковий відступ всередині модального вікна */
+  text-align: left; /* Вирівнювання тексту */
+  overflow-y: auto; /* Увімкнення прокрутки, якщо вміст великий */
+  box-sizing: border-box; /* Враховувати відступи у розмірах */
+}
+
+#modal-1 h2 {
+  font-size: 24px; /* Збільшення розміру заголовка */
+  margin-bottom: 20px;
+}
+
+#modal-1 p {
+  font-size: 16px; /* Збільшення розміру тексту */
+  line-height: 1.6; /* Покращений інтерліньяж */
+}
+
+#modal-1 button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  font-size: 16px; /* Збільшення розміру кнопки */
+}

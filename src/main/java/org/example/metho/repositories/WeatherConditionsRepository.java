@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface WeatherConditionsRepository extends JpaRepository<WeatherCondition, Integer> {
     List<WeatherCondition> findAll();
+    List<WeatherCondition> findByProtectedAreaId(int protectedAreaId);
 }

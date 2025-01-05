@@ -9,13 +9,23 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class CorsConfig {
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable() // Вимкнення CSRF для POST-запитів
+        HttpSecurity httpSecurity = http.csrf().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/api/evaluate").permitAll() // Дозволяємо доступ до вашого ендпоінту
+                        .antMatchers("/api/evaluate").permitAll()
+                        .antMatchers("/").permitAll()
+                        .antMatchers("classpath:/static/").permitAll()
+                        .antMatchers("/static/**").permitAll()
+                        .antMatchers("/api/**").permitAll()
+                        .antMatchers("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js").permitAll()
+                        .antMatchers("https://cdn.jsdelivr.net/npm/chart.js").permitAll()
+                        .antMatchers("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();
     }
+
+
 }

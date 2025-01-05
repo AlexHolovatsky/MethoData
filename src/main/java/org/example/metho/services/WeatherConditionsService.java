@@ -16,4 +16,9 @@ public class WeatherConditionsService {
     public List<WeatherCondition> getAllWeatherConditions() {
         return weatherConditionsRepository.findAll();
     }
+
+    // Новий метод для отримання погодних даних за ID заповідника
+    public List<WeatherCondition> getConditionsByReserveId(int reserveId) {
+        return weatherConditionsRepository.findByProtectedAreaId(reserveId);
+    }
 }

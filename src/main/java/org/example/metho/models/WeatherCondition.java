@@ -26,6 +26,19 @@ public class WeatherCondition {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    private double humidity; // Вологість
+
+    private double solarRadiation; // Сонячна радіація
+
+    private double airPressure; // Тиск повітря
+
+    private int airQualityIndex; // Індекс якості повітря
+
+    private double cloudCover; // Покриття хмарами
+
+    private double precipitationIntensity; // Інтенсивність опадів
+
+    // Геттери та сеттери
     public int getId() {
         return id;
     }
@@ -80,5 +93,53 @@ public class WeatherCondition {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public double getHumidity() {
+        return humidity;
+    }
+
+    public void setHumidity(double humidity) {
+        this.humidity = humidity;
+    }
+
+    public double getSolarRadiation() {
+        return solarRadiation;
+    }
+
+    public void setSolarRadiation(double solarRadiation) {
+        this.solarRadiation = solarRadiation;
+    }
+
+    public double getAirPressure() {
+        return airPressure;
+    }
+
+    public void setAirPressure(double airPressure) {
+        this.airPressure = airPressure;
+    }
+
+    public int getAirQualityIndex() {
+        return airQualityIndex;
+    }
+
+    public void setAirQualityIndex(int airQualityIndex) {
+        this.airQualityIndex = airQualityIndex;
+    }
+
+    public double getCloudCover() {
+        return cloudCover;
+    }
+
+    public void setCloudCover(double cloudCover) {
+        this.cloudCover = cloudCover;
+    }
+
+    public double getPrecipitationIntensity() {
+        return precipitationIntensity;
+    }
+
+    public void setPrecipitationIntensity(double precipitationIntensity) {
+        this.precipitationIntensity = precipitationIntensity;
     }
 }

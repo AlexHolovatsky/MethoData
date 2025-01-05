@@ -94,35 +94,85 @@ document.addEventListener('DOMContentLoaded', function () {
       }
   });
 
-    // Функція для відкриття першого модального вікна
-  window.showModal1 = async function(reserve) {
-      console.log('reserve', JSON.stringify(reserve))
-      const response = await fetch("/api/evaluate", {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify({weatherData: reserve.weatherData})
-      });
-      if (response.ok) {
-          const data = await response.json();
-          console.log("Fuzzy Evaluation Results:", data);
-          // Відобразіть дані на сторінці
-          data.forEach(item => {
-              console.log(`Дата: ${item.date}, Стан: ${item.status}`);
-          });
-          document.getElementById("modal-1-fuzzy-logic").innerHTML = data.map(item => `<p>Дата: ${item.date}, Статус: ${item.status}</p>`).join('');
-      } else {
-          console.error("Error:", response.status);
-      }
+// Функція для відкриття першого модального вікна
+    window.showModal1 = async function (reserve) {
+        console.log('reserve', JSON.stringify(reserve));
 
-      console.log(reserve)
-      document.getElementById('modal-1-title').textContent = reserve.protectedArea.name;
-      document.getElementById('modal-1-description').textContent = reserve.protectedArea.description;
-      document.getElementById('open-modal-2').onclick = function (){showModal2(reserve.weatherData);}
-      document.getElementById('overlay').style.display = 'block';
-      document.getElementById('modal-1').style.display = 'block';
-  };
+        // Зберігаємо поточний заповідник у глобальну змінну
+        window.currentReserve = reserve;
+
+        // Додайте перевірку або значення за замовчуванням для нових полів
+        const updatedWeatherData = reserve.weatherData.map(day => ({
+            ...day,
+            humidity: day.humidity || 50, // Значення за замовчуванням, якщо відсутнє
+            solarRadiation: day.solarRadiation || 300,
+            airPressure: day.airPressure || 1013,
+            airQualityIndex: day.airQualityIndex || 50,
+            cloudCover: day.cloudCover || 50,
+            precipitationIntensity: day.precipitationIntensity || 0
+        }));
+
+        // Відправка даних до API /api/evaluate
+        const response = await fetch("/api/evaluate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ weatherData: updatedWeatherData })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Fuzzy Evaluation Results:", data);
+
+            // Відобразіть дані на сторінці
+            document.getElementById("modal-1-fuzzy-logic").innerHTML = data
+                .map(item => `<p>Дата: ${item.date}, Статус: ${item.status}</p>`)
+                .join('');
+        } else {
+            console.error("Error:", response.status);
+        }
+
+        document.getElementById('modal-1-title').textContent = reserve.protectedArea.name;
+        document.getElementById('modal-1-description').textContent = reserve.protectedArea.description;
+        document.getElementById('open-modal-2').onclick = function () {
+            showModal2(updatedWeatherData);
+        };
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('modal-1').style.display = 'block';
+    };
+    document.getElementById('generate-report').addEventListener('click', async function () {
+        const reserve = window.currentReserve; // Отримуємо поточний заповідник
+        if (!reserve) {
+            alert("Заповідник не вибрано!");
+            return;
+        }
+
+        // Відправляємо запит на сервер для генерації звіту
+        const response = await fetch('/api/reserve/report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reserveId: reserve.protectedArea.id })
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `${reserve.protectedArea.name}-report.pdf`; // Назва файлу
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            alert("Звіт успішно згенеровано!");
+        } else {
+            console.error('Помилка генерації звіту:', await response.text());
+            alert("Не вдалося згенерувати звіт.");
+        }
+    });
 
   // Закриття першого модального вікна
   document.getElementById('close-modal-1').addEventListener('click', function() {
@@ -235,11 +285,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
-
-
     // Закриття другого модального вікна
   document.getElementById('close-modal-2').addEventListener('click', function() {
       document.getElementById('modal-2').style.display = 'none';
       document.getElementById('overlay').style.display = 'none';
   });
+
 });
